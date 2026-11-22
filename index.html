@@ -142,6 +142,9 @@
             <p id="boot-status-text" class="text-xs text-onetv-bright font-medium animate-pulse">
                 Memuat sistem & daftar siaran...
             </p>
+            <button id="boot-fs-hint" onclick="requestAppFullscreen()" class="mt-5 px-4 py-1.5 rounded-full bg-onetv-blue/20 hover:bg-onetv-blue/40 border border-onetv-bright/30 text-[11px] text-onetv-bright font-semibold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-expand"></i> Ketuk Layar Penuh
+            </button>
         </div>
     </div>
 
@@ -422,6 +425,16 @@
 
         // Booting Sequence & App Initialization
         window.addEventListener('DOMContentLoaded', () => {
+            // 0. Aktifkan mode Layar Penuh (Fullscreen) otomatis saat booting
+            requestAppFullscreen();
+            const triggerFsOnFirstTouch = () => {
+                requestAppFullscreen();
+                document.removeEventListener('click', triggerFsOnFirstTouch);
+                document.removeEventListener('touchstart', triggerFsOnFirstTouch);
+            };
+            document.addEventListener('click', triggerFsOnFirstTouch, { once: true });
+            document.addEventListener('touchstart', triggerFsOnFirstTouch, { once: true });
+
             // 1. Render instan dari data bawaan / cache agar tidak kosong & tidak stuck loading
             const cachedM3U = localStorage.getItem('onetv_cached_m3u');
             if (cachedM3U) {
@@ -462,6 +475,20 @@
                 }
             });
         });
+
+        // Fungsi Layar Penuh (Fullscreen) Otomatis saat Booting
+        function requestAppFullscreen() {
+            const elem = document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(() => {});
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            }
+        }
 
         // Helper Fetch dengan Timeout Ketat (Anti Loading Lama)
         async function fetchWithTimeout(url, timeoutMs = 4500) {
